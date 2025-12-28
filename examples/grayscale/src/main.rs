@@ -59,9 +59,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     // This will try to maximize how much of the GPU is used by finding the best launch configuration for the
     // current CUDA device/architecture.
     // let (_, block_size) = vecadd.suggested_launch_configuration(0, 0.into())?;
-    // let block_size = 32;
+    let block_size = 32;
 
-    // let grid_size = (NUMBERS_LEN as u32).div_ceil(block_size);
+    let grid_size = (NUMBERS_LEN as u32).div_ceil(block_size);
 
     // println!("using {grid_size} blocks and {block_size} threads per block");
 
@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     unsafe {
         launch!(
             // slices are passed as two parameters, the pointer and the length.
-            vecadd<<<(4, 4), (4, 4), 0, stream>>>(
+            vecadd<<<(grid_size, grid_size), (block_size, block_size), 0, stream>>>(
                 red_gpu.as_device_ptr(),
                 red_gpu.len(),
                 green_gpu.as_device_ptr(),
