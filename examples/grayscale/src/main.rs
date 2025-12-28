@@ -22,13 +22,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut blue = vec![3.0f32; NUMBERS_LEN];
     wyrand.fill(&mut blue);
 
-    // let mut rhs = vec![0.0f32; NUMBERS_LEN];
-    // wyrand.fill(&mut rhs);
-
-    // let red = &[100.0];
-    // let green = &[33.0];
-    // let blue = &[150.0];
-
     // initialize CUDA, this will pick the first available device and will
     // make a CUDA context from it.
     // We don't need the context for anything but it must be kept alive.
