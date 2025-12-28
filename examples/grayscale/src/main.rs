@@ -1,5 +1,4 @@
 use cust::prelude::*;
-use nanorand::{Rng, WyRand};
 use std::error::Error;
 
 static PTX: &str = include_str!(concat!(env!("OUT_DIR"), "/kernels.ptx"));
