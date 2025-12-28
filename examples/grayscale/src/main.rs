@@ -2,11 +2,6 @@ use cust::prelude::*;
 use nanorand::{Rng, WyRand};
 use std::error::Error;
 
-/// How many numbers to generate and add together.
-// const NUMBERS_LEN: usize = 4;
-// const WIDTH: usize = NUMBERS_LEN.isqrt();
-// const HEIGHT: usize = NUMBERS_LEN.isqrt();
-
 static PTX: &str = include_str!(concat!(env!("OUT_DIR"), "/kernels.ptx"));
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -15,9 +10,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let rgb_img = img.to_rgb32f();
 
-    let WIDTH = img.width() as usize;
-    let HEIGHT = img.height() as usize;
-    let NUMBERS_LEN = WIDTH * HEIGHT;
+    let width = img.width() as usize;
+    let height = img.height() as usize;
+    let buf_len = width * height;
 
     let raw_bytes = rgb_img.as_raw();
 
@@ -51,7 +46,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // allocate our output buffer. You could also use DeviceBuffer::uninitialized() to avoid the
     // cost of the copy, but you need to be careful not to read from the buffer.
-    let mut gray = vec![0.1f32; NUMBERS_LEN];
+    let mut gray = vec![0.1f32; buf_len];
     let gray_buf = gray.as_slice().as_dbuf()?;
 
     // retrieve the `vecadd` kernel from the module so we can calculate the right launch config.
@@ -63,7 +58,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let (_, block_size) = vecadd.suggested_launch_configuration(0, 0.into())?;
     let block_size = 32;
 
-    let grid_size = (NUMBERS_LEN as u32).div_ceil(block_size);
+    let grid_size = (buf_len as u32).div_ceil(block_size);
 
     // println!("using {grid_size} blocks and {block_size} threads per block");
 
@@ -80,8 +75,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 blue_gpu.as_device_ptr(),
                 blue_gpu.len(),
                 gray_buf.as_device_ptr(),
-                WIDTH,
-                HEIGHT,
+                width,
+                height,
             )
         )?;
     }
@@ -100,15 +95,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .flatten()
         .collect::<Vec<u8>>();
 
-    let gray_img = image::GrayImage::from_raw(WIDTH as u32, HEIGHT as u32, gray_bytes)
+    let gray_img = image::GrayImage::from_raw(width as u32, height as u32, gray_bytes)
         .expect("create gray img");
     gray_img.save("grayscale.png")?;
-
-    // println!("red: {:?}", red);
-    // println!("green: {:?}", green);
-    // println!("blue: {:?}", blue);
-
-    // println!("gray: {:?}", gray);
 
     Ok(())
 }
