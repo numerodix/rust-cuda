@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let gray_buf = gray.as_slice().as_dbuf()?;
 
     // retrieve the `vecadd` kernel from the module so we can calculate the right launch config.
-    let vecadd = module.get_function("vecadd")?;
+    let to_grayscale = module.get_function("to_grayscale")?;
 
     // use the CUDA occupancy API to find an optimal launch configuration for the grid and block size.
     // This will try to maximize how much of the GPU is used by finding the best launch configuration for the
@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     unsafe {
         launch!(
             // slices are passed as two parameters, the pointer and the length.
-            vecadd<<<(grid_size, grid_size), (block_size, block_size), 0, stream>>>(
+            to_grayscale<<<(grid_size, grid_size), (block_size, block_size), 0, stream>>>(
                 red_gpu.as_device_ptr(),
                 red_gpu.len(),
                 green_gpu.as_device_ptr(),

@@ -2,7 +2,7 @@ use cuda_std::prelude::*;
 
 #[kernel]
 #[allow(improper_ctypes_definitions, clippy::missing_safety_doc)]
-pub unsafe fn vecadd(red: &[f32], green: &[f32], blue: &[f32], gray: *mut f32, width: usize, height: usize) {
+pub unsafe fn to_grayscale(red: &[f32], green: &[f32], blue: &[f32], gray: *mut f32, width: usize, height: usize) {
     let row = (thread::block_idx_y() * thread::block_dim_y() + thread::thread_idx_y()) as usize;
     let col = (thread::block_idx_x() * thread::block_dim_x() + thread::thread_idx_x()) as usize;
 
