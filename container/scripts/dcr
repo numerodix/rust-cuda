@@ -40,4 +40,4 @@ docker create \
     ghcr.io/rust-gpu/rust-cuda-ubuntu24-cuda12:main \
     sleep infinity
 
-docker start "$CONTAINER_NAME"
+docker start "rust-cuda"

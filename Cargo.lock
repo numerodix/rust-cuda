@@ -1494,6 +1494,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "grayscale"
+version = "0.1.0"
+dependencies = [
+ "cuda_builder",
+ "cust",
+ "nanorand",
+]
+
+[[package]]
+name = "grayscale-kernels"
+version = "0.1.0"
+dependencies = [
+ "cuda_std",
+]
+
+[[package]]
 name = "half"
 version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
