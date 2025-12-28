@@ -3,24 +3,33 @@ use nanorand::{Rng, WyRand};
 use std::error::Error;
 
 /// How many numbers to generate and add together.
-const NUMBERS_LEN: usize = 4;
-const WIDTH: usize = NUMBERS_LEN.isqrt();
-const HEIGHT: usize = NUMBERS_LEN.isqrt();
+// const NUMBERS_LEN: usize = 4;
+// const WIDTH: usize = NUMBERS_LEN.isqrt();
+// const HEIGHT: usize = NUMBERS_LEN.isqrt();
 
 static PTX: &str = include_str!(concat!(env!("OUT_DIR"), "/kernels.ptx"));
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // // generate our random vectors.
-    let mut wyrand = WyRand::new();
+    let fp = std::env::args().nth(1).expect("need image filepath");
+    let img = image::open(fp)?;
 
-    let mut red = vec![1.0f32; NUMBERS_LEN];
-    wyrand.fill(&mut red);
+    let rgb_img = img.to_rgb32f();
 
-    let mut green = vec![2.0f32; NUMBERS_LEN];
-    wyrand.fill(&mut green);
+    let WIDTH = img.width() as usize;
+    let HEIGHT = img.height() as usize;
+    let NUMBERS_LEN = WIDTH * HEIGHT;
 
-    let mut blue = vec![3.0f32; NUMBERS_LEN];
-    wyrand.fill(&mut blue);
+    let raw_bytes = rgb_img.as_raw();
+
+    let mut red = vec![];
+    let mut green = vec![];
+    let mut blue = vec![];
+
+    for chunk in raw_bytes.chunks_exact(3) {
+        red.push(chunk[0]);
+        green.push(chunk[1]);
+        blue.push(chunk[2]);
+    }
 
     // initialize CUDA, this will pick the first available device and will
     // make a CUDA context from it.
@@ -82,11 +91,24 @@ fn main() -> Result<(), Box<dyn Error>> {
     // copy back the data from the GPU.
     gray_buf.copy_to(&mut gray)?;
 
-    println!("red: {:?}", red);
-    println!("green: {:?}", green);
-    println!("blue: {:?}", blue);
+    let gray_bytes = gray
+        .iter()
+        .map(|f| {
+            let v = (f * 255.0) as u8;
+            [v]
+        })
+        .flatten()
+        .collect::<Vec<u8>>();
 
-    println!("gray: {:?}", gray);
+    let gray_img = image::GrayImage::from_raw(WIDTH as u32, HEIGHT as u32, gray_bytes)
+        .expect("create gray img");
+    gray_img.save("grayscale.png")?;
+
+    // println!("red: {:?}", red);
+    // println!("green: {:?}", green);
+    // println!("blue: {:?}", blue);
+
+    // println!("gray: {:?}", gray);
 
     Ok(())
 }
